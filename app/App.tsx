@@ -8,16 +8,15 @@
 
 import React from 'react';
 import {
-  StyleSheet,
-  Text,
   View,
 } from 'react-native';
+import { RootNavigator } from './navigation/RootNavigation';
 
 const App = () => {
 
   return (
-    <View>
-      <Text> App screen</Text>
+    <View style={{ flex: 1 }}>
+      <RootNavigator />
     </View>
   );
 };
