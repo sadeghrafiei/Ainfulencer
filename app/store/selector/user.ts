@@ -1,7 +1,5 @@
-import {Reducer} from 'redux';
-
 type StateType = {
-  user: Reducer;
+  user: {loggedIn: boolean};
 };
 
 export const selectUser = (state: StateType) => state.user;

@@ -1,12 +1,18 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { FlatList, Text, View, Keyboard, Image, StyleSheet } from 'react-native'
-import { SearchInput } from '../components/SearchInput'
-import { SearchInputRef } from '../components/SearchInput.props'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { FlatList, Text, View, Keyboard, Image, StyleSheet, ActivityIndicator } from 'react-native'
+import { SearchInput } from '../components/search-input/SearchInput'
+import { SearchInputRef } from '../components/search-input/SearchInput.props'
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { users } from '../api/api'
+import { users as fetchUser } from '../api/api'
 import { image } from '../theme/image'
 import { color } from '../theme/color'
 import { spacing } from '../theme/spacing'
+import { NavigationContainer, useNavigation } from '@react-navigation/native'
+import { useDispatch, useSelector } from 'react-redux'
+import { logout, logoutSuccess } from '../store/reducers/user'
+import useStateStorage from '../hooks/useStateStorage'
+import { tokenKey } from '../helpers/localStorage'
+import { selectUser } from '../store/selector/user'
 
 type UserProps = {
     username: string
@@ -15,9 +21,17 @@ type UserProps = {
 
 export const SearchScreen: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState<string>('')
-    const [user, setUser] = useState<UserProps[]>([])
+    const [users, setUsers] = useState<UserProps[]>([])
+    const [isLoading, setIsLoading] = useState<boolean>(false)
+    const [token, setToken] = useStateStorage<string | null>(tokenKey, null);
 
     const inputRef = useRef<SearchInputRef>(null)
+
+    const navigation = useNavigation()
+
+    const dispatch = useDispatch()
+
+    const user = useSelector(selectUser);
 
     const { top: marginTop } = useSafeAreaInsets()
 
@@ -27,11 +41,43 @@ export const SearchScreen: React.FC = () => {
     }
 
     const getUsers = async () => {
-        const res = await users()
-        if (res.status === 200) {
-            setUser(res.data)
+        setIsLoading(true)
+        try {
+            const res = await fetchUser()
+            if (res.status === 200) {
+                setUsers(res.data)
+            }
+        } catch (error) {
+            setIsLoading(false)
+        }
+        finally {
+            setIsLoading(false)
         }
     }
+
+    const clearToken = useCallback(async () => {
+        await Promise.all([
+            setToken(null),
+        ]).then(() => {
+            navigation.reset({ index: 0, routes: [{ name: 'login' }] });
+        });
+    }, [setToken]);
+
+    const onLogout = () => {
+        try {
+            dispatch(logout());
+            dispatch(logoutSuccess());
+            if (!user.loggedIn) {
+                clearToken()
+            }
+
+        } catch (error) {
+            setIsLoading(false)
+            console.log({ error })
+        }
+    }
+
+    console.log({ token })
 
     useEffect(() => {
         getUsers()
@@ -50,7 +96,7 @@ export const SearchScreen: React.FC = () => {
         )
     }
 
-    const listItems = user.filter((item, index) => item.username.toLowerCase().includes(searchTerm?.toLowerCase()))
+    const listItems = users.filter((item, index) => item.username.toLowerCase().includes(searchTerm?.toLowerCase()))
 
     const renderHeaderComponent = () => {
         return (
@@ -62,10 +108,13 @@ export const SearchScreen: React.FC = () => {
                     clear={clear}
                     defaultValue={searchTerm}
                     displayClear={searchTerm?.length > 0}
+                    onBackPress={() => onLogout()}
                 />
             </View>
         )
     }
+
+    if (isLoading) return <ActivityIndicator size={"large"} color={color.dim} style={{ flex: 1, justifyContent: "center", alignItems: 'center' }} />
     return (
         <View style={{ marginTop, flex: 1 }}>
             <FlatList
@@ -74,6 +123,7 @@ export const SearchScreen: React.FC = () => {
                 keyExtractor={item => item.id.toString()}
                 ListHeaderComponent={renderHeaderComponent}
                 ItemSeparatorComponent={() => <View style={{ marginVertical: spacing.small }} />}
+
             />
         </View>
     )

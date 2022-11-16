@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useImperativeHandle, useRef } from "react"
 import { ActivityIndicator, Image, Pressable, StyleSheet, TextInput, View } from "react-native"
-import { color } from "../theme/color"
-import { image } from "../theme/image"
-import { spacing } from "../theme/spacing"
+import { color } from "../../theme/color"
+import { image } from "../../theme/image"
+import { spacing } from "../../theme/spacing"
 
 import { SearchInputProps, SearchInputRef } from "./SearchInput.props"
 
@@ -59,18 +59,15 @@ export const SearchInput = React.forwardRef<SearchInputRef, SearchInputProps>(
                         placeholder={placeholderTx}
                         placeholderTextColor={color.dim}
                         returnKeyType="search"
-                        keyboardType="web-search"
                     />
 
                     {typeof inProgress === "boolean" && (
                         <View style={styles.spinner}>{inProgress && <ActivityIndicator size="small" />}</View>
                     )}
                 </View>
-                {/* {initialized && displayClear && ( */}
                 <Pressable onPress={() => onBackPress?.()} style={styles.clear} hitSlop={{ top: 8, bottom: 8, right: 8, left: 8 }}>
                     <Image style={styles.backIcon} source={image.BackArrow} />
                 </Pressable>
-                {/* )} */}
             </View>
 
         )
