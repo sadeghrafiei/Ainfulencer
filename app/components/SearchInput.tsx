@@ -15,7 +15,7 @@ export const SearchInput = React.forwardRef<SearchInputRef, SearchInputProps>(
             clear,
             defaultValue,
             displayClear,
-            placeholderTx = "SearchScreen.placeholder",
+            placeholderTx = "Search a hashtag...",
             inProgress = null,
             ...props
         },
@@ -43,34 +43,36 @@ export const SearchInput = React.forwardRef<SearchInputRef, SearchInputProps>(
         }, [defaultValue])
 
         return (
-            <View style={styles.wrapper}>
-                {/* {initialized ? ( */}
-                <Pressable hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={() => onBackPress?.()}>
-                    <Image style={styles.icon} source={image.Close} />
+            <View style={styles.container}>
+                <View style={styles.wrapper}>
+                    {displayClear && initialized && (
+                        <Pressable onPress={clear} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                            <Image style={styles.icon} source={image.Close} />
+                        </Pressable>
+                    )}
+                    <TextInput
+                        ref={inputRef}
+                        {...props}
+                        value={value}
+                        style={[styles.input]}
+                        onChangeText={_onChangeText}
+                        placeholder={placeholderTx}
+                        placeholderTextColor={color.dim}
+                        returnKeyType="search"
+                        keyboardType="web-search"
+                    />
+
+                    {typeof inProgress === "boolean" && (
+                        <View style={styles.spinner}>{inProgress && <ActivityIndicator size="small" />}</View>
+                    )}
+                </View>
+                {/* {initialized && displayClear && ( */}
+                <Pressable onPress={() => onBackPress?.()} style={styles.clear} hitSlop={{ top: 8, bottom: 8, right: 8, left: 8 }}>
+                    <Image style={styles.backIcon} source={image.BackArrow} />
                 </Pressable>
-                {/* ) : (
-                    <Icon style={styles.icon} name="search" color="border" size={20} />
-                )} */}
-                <TextInput
-                    ref={inputRef}
-                    {...props}
-                    value={value}
-                    style={[styles.input]}
-                    onChangeText={_onChangeText}
-                    placeholder={placeholderTx}
-                    placeholderTextColor={color.border}
-                    returnKeyType="search"
-                    keyboardType="web-search"
-                />
-                {initialized && displayClear && (
-                    <Pressable onPress={clear} style={styles.clear} hitSlop={{ top: 8, bottom: 8, right: 8, left: 8 }}>
-                        <Image style={styles.clearIcon} source={image.BackArrow} />
-                    </Pressable>
-                )}
-                {typeof inProgress === "boolean" && (
-                    <View style={styles.spinner}>{inProgress && <ActivityIndicator size="small" />}</View>
-                )}
+                {/* )} */}
             </View>
+
         )
     },
 )
@@ -78,29 +80,39 @@ export const SearchInput = React.forwardRef<SearchInputRef, SearchInputProps>(
 SearchInput.displayName = "SearchInput"
 
 const styles = StyleSheet.create({
-    wrapper: {
+    container: {
         marginHorizontal: spacing.xLarge,
-        borderRadius: spacing.radius,
-        backgroundColor: color.backgroundAlt,
+        flexDirection: "row-reverse",
+    },
+    wrapper: {
+        borderRadius: spacing.xxLarge,
+        backgroundColor: color.gray,
         flexDirection: "row-reverse",
         alignItems: "center",
         paddingHorizontal: spacing.large,
+        flex: 1
     },
 
-    icon: {},
+    icon: {
+        width: 10,
+        height: 15
+    },
 
     input: {
         flex: 1,
         paddingHorizontal: spacing.medium,
         color: color.text,
-        paddingVertical: spacing.medium,
+        paddingVertical: spacing.medium + 2,
         fontSize: 14,
         lineHeight: 20
     },
 
-    clear: {},
+    clear: {
+        paddingHorizontal: spacing.tiny,
+        alignSelf: "center"
+    },
 
-    clearIcon: {},
+    backIcon: { width: 30, height: 30 },
 
     spinner: {
         width: 15,
